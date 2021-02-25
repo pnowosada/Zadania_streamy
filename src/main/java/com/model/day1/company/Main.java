@@ -1,8 +1,17 @@
 package com.model.day1.company;
 
+import com.sun.source.tree.LiteralTree;
+
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
+import java.util.stream.Stream;
+
+//import static jdk.vm.ci.sparc.SPARC.o2;
 
 public class Main {
     public static void main(String[] args) {
@@ -457,36 +466,50 @@ public class Main {
 // Wszystkie rozwiązania zapisz w oddzielnych metodach statycznych w klasie Main.
 // 1. Wylistuj (system out println) wszystkie firmy
 //        company_1_wylistuj(companies);
-
+        List<String> listOfCompany = companies.stream()
+                .map(company -> company.getName())
+                .collect(Collectors.toList());
+        System.out.println("Zadanie 1: " + listOfCompany);
 // 2. Wylistuj wszystkie firmy które są z Detroit
-// 3. Wylistuj wszystkie firmy z Londynu, posortuj je po ilości pracowników (rosnąco).
-// 4. Wylistuj wszystkie firmy z Warszawy. Posortuj je po ilości zakupów (rosnąco) i ilości pracowników (malejąco).
+        List<String> listOfDetroitCompanies = companies.stream()
+                .map(company -> company.getName().concat("Detroit"))
+                .collect(Collectors.toList());
+        System.out.println("Zadanie 2: " + listOfDetroitCompanies);
+// 3. Wylistuj wszystkie firmy z Londynu, posortuj (sorted [comparator]) je po ilości pracowników (rosnąco).
+        company_3_wylistuj_londyjskie_pososortowanie(companies);
+// 4. Wylistuj wszystkie firmy z Gdanska. Posortuj je po ilości zakupów (rosnąco) i ilości pracowników (malejąco).
+        //  compony_4_wylistuj_gda_posortowane_zakupy_pracownicy(companies);//TODO
 // 5. Zwróć firmę z największą ilością pracowników, która pochodzi z Kijowa.
+        compony_5_wylistuj_kijow_pracownicy(companies);
 // 6. Zwróć firmę z najkrótszą nazwą
+        compony_6_najkrotsza_nazwa(companies);
 // 7. Zwróć firmę która nie pochodzi z Kijowa, Londynu i Detroit, która ma najmniej kupionych produktów.
+        compony_7(companies);
 // 8. Każdej firmie dodaj po 1 pracowniku, jeśli pochodzi z Kijowa lub Detroit
+        compony_8(companies);//TODO
 // 9. ** Zwróć MAPĘ w której kluczem jest nazwa firmy, a wartością ilość pracowników w tej firmie (https://howtodoinjava.com/java8/collect-stream-to-map/)
 // 10.** Zwróć Mapę w której kluczem jest miejscowość a wartością jest LISTA FIRM z tamtej miejscowości (Map<String, List<Company>) (https://stackoverflow.com/questions/24917053/collecting-hashmapstring-liststring-java-8)
-// 11. Zwróć firmę która dokonała zakupów na największą kwotę
-//        company_11_zakupy_najwieksze(companies);
-// 12. Zwróć firmę która kupiła najwięcej produktów za kwotę wyższą niż 10 k
-//        company_12_zakupy_10k(companies);
-// 13. *Zwróć miejscowość która wydała najwięcej pieniędzy. Stwórz mapę Map<String, Double> gdzie kluczem jest miejscowość, a wartością jest kwota wydana przez firmy pochodzące z tamtej miejscowości
-//        company_13_najwiecej_hajsu(companies);
-// 14. Wypisz firmy które 15 stycznia 2018 kupiły "Network Switch"
-//        company_14_network(companies);
-// 15. Znajdź firmę która kupuje najwięcej kawy
 
+// 11. Zwróć firmę która dokonała zakupów na największą kwotę
+        company_11_zakupy_najwieksze(companies);
+// 12. Zwróć firmę która kupiła najwięcej produktów za kwotę wyższą niż 10 k
+        company_12_zakupy_10k(companies);
+// 13. *Zwróć miejscowość która wydała najwięcej pieniędzy. Stwórz mapę Map<String, Double> gdzie kluczem jest miejscowość, a wartością jest kwota wydana przez firmy pochodzące z tamtej miejscowości
+        company_13_najwiecej_hajsu(companies);
+// 14. Wypisz firmy które 15 stycznia 2018 kupiły "Network Switch"
+        company_14_network(companies);
+// 15. Znajdź firmę która kupuje najwięcej kawy
+        company_15_coffe(companies);
 // 16. Wypisz ile łącznie zostało kupionej kawy Arabica w miesiącu styczniu
-//        company_16_arabica_january(companies);
+        company_16_arabica_january(companies);
 // 17. Wypisz ile łącznie kawy (Arabica i Roubsta) zostało kupionej w dni parzyste.
-//        company_17_arabica_robusta_even(companies);
+        company_17_arabica_robusta_even(companies);
 // 18. Zwróć Mapę (Map<Product, Set<Company>>) w której kluczem jest typ kawy (powinny być dwie, Arabica i Robusta) i wartością są listy firm które kupiły podaną kawę chociaż raz.
-//        company_18_mapa_kaw(companies);
+        company_18_mapa_kaw(companies);
 // 19. Zwróć firmę która w styczniu kupiła najwięcej paliwa (ropy)
-//        company_19_most_oil_january(companies);
+        company_19_most_oil_january(companies);
 // 20. Zwróć firmę której proporcja wydanych pieniędzy do ilości pracowników jest najwyższa
-//        company_20_money_vs_employees(companies);
+        company_20_money_vs_employees(companies);
 // 21. Zwróć firmę która najwięcej wydaje na artykuły biurowe
 //        company_21_most_sheeets(companies);
 // 22. Zwróć firmy posortowane po ilości wydanych pieniędzy na paliwo
@@ -518,4 +541,276 @@ public class Main {
 // 40. Znajdź produkty które były kupowane zarówno w kilogramach jak i w sztukach
 // 40. Wymyśl 5 ciekawych zapytań i spróbuj je zrealizować. Najciekawsze polecenie otrzyma nagrodę-niespodziankę z Baltimore :P
     }
+
+
+
+    // 3. Wylistuj wszystkie firmy z Londynu, posortuj (sorted [comparator]) je po ilości pracowników (rosnąco).
+
+    private static void company_3_wylistuj_londyjskie_pososortowanie(List<Company> companies) {
+        List<Company> firmy = companies.stream()
+                .filter(company -> company.getCityHeadquarters().equalsIgnoreCase("London"))
+                .sorted(Comparator.comparingDouble(Company::getEmployees))
+                .collect(Collectors.toList());
+//        System.out.println("Zadanie 3: ");
+//        System.out.println("\nFirmy:\n " + firmy);
+        wypisz_po_nazwach_kolejno(firmy);
+
+    }
+
+    private static void wypisz_po_nazwach_kolejno(List<Company> firmy) {
+        System.out.println("\n");
+        System.out.println("Firmy:\n");
+        AtomicInteger i = new AtomicInteger(1);
+        firmy.stream().forEach(firma -> {
+            String tekstDoWyswietlenia = (i.getAndIncrement()) + "." + firma.getName() + " " + firma.getEmployees() + " " + firma.getCityHeadquarters();
+            System.out.println(tekstDoWyswietlenia);
+        });
+        System.out.println("\n");
+    }
+
+    //     4. Wylistuj wszystkie firmy z Gdanska. Posortuj je po ilości zakupów (rosnąco) i ilości pracowników (malejąco).
+//    private static void compony_4_wylistuj_gda_posortowane_zakupy_pracownicy(List<Company> companies) {
+//        List<Company> firmyGDA_pracownicy = companies.stream()
+//                .filter(company -> company.getCityHeadquarters().equalsIgnoreCase("Gdansk"))
+//                .filter(company-> company.getPurchaseList().stream().mapToDouble(Purchase::getQuantity))
+//                .sorted(Comparator.comparingInt((Company::getEmployees)))
+//                .collect(Collectors.toList());
+//        Stream<Company> firmyGDA_zakupy = companies.stream()
+//                .sorted(Comparator.comparing(
+//                        company -> company.getPurchaseList().stream()
+//                                .mapToDouble(purchase -> purchase.getQuantity())));
+//        System.out.println("Zadanie 4: ");
+//        System.out.println("\nFirmy 4 pracownicy :\n " + firmyGDA_pracownicy);
+//        System.out.println("Firmy 4 zakupy: " +firmyGDA_zakupy);
+//        wypisz_po_nazwach_kolejno_4(firmyGDA_pracownicy);
+//
+//    }
+
+    private static void wypisz_po_nazwach_kolejno_4(List<Company> firmyGDA) {
+        System.out.println("\n");
+        System.out.println("Firmy:\n");
+        AtomicInteger i = new AtomicInteger(1);
+        firmyGDA.stream().forEach(company -> {
+            String tekstDoWyswietlenia = (i.getAndIncrement()) + "." + company.getName() + " " + company.getEmployees() + " " + company.getCityHeadquarters() + " pracownicy:  " + company.getEmployees() + "\n" + "zakupy: ";
+            System.out.println(tekstDoWyswietlenia);
+        });
+
+        System.out.println("\n");
+    }
+
+    private static void wypisz_po_nazwach_kolejno_4_(Stream<Company> firmyGDA) {
+//        System.out.println("\n");
+//        System.out.println("Firmy:\n");
+//        AtomicInteger i = new AtomicInteger(1);
+//        firmyGDA.stream().forEach( -> {
+//            String tekstDoWyswietlenia = (i.getAndIncrement()) + "." + company.getName() + " " + company.getEmployees() + " " + company.getCityHeadquarters()+" pracownicy:  "+ company.getEmployees()+"\n"+"zakupy: ";
+//            System.out.println(tekstDoWyswietlenia);
+//        });
+//
+//        System.out.println("\n");
+//    }
+//
+//    //
+//    private static void compony_4_wylistuj_gda_posortowane_zakupy(List<Company>){
+//        Stream<Double> firmyGDA_zakupy = companies.stream()
+//                .filter(company -> company.getCityHeadquarters().equalsIgnoreCase("Gdansk"))
+//                .sorted(Comparator.comparingDouble(
+//                        company -> company.mapToDouble(purchase -> purchase.getQuantity())))
+//        System.out.println("Zadanie 4: ");
+//        System.out.println("\nFirmy:\n " + firmyGDA_zakupy);
+//       // wypisz_po_nazwach_kolejno_4(firmyGDA_zakupy);
+    }
+
+    //
+    // 5. Zwróć firmę z największą ilością pracowników, która pochodzi z Kijowa.
+    private static void compony_5_wylistuj_kijow_pracownicy(List<Company> companies) {
+        Optional<Company> firmaKijow = companies.stream()
+                .filter(company -> company.getCityHeadquarters().equalsIgnoreCase("Kijev"))
+                .max(Comparator.comparingDouble(Company::getEmployees));
+        System.out.println("Zadanie 5: " + firmaKijow);
+    }
+
+    // 6. Zwróć firmę z najkrótszą nazwą
+    private static void compony_6_najkrotsza_nazwa(List<Company> companies) {
+        Optional<Company> company_short_name = companies.stream()
+                .min(Comparator.comparing(company -> company.getName().length()));
+        System.out.println("Zadanie 6: " + company_short_name);
+    }
+
+    // 7. Zwróć firmę która nie pochodzi z Kijowa, Londynu i Detroit, która ma najmniej kupionych produktów.
+    private static void compony_7(List<Company> companies) {
+        Optional<Company> firma_7 = companies.stream()
+                .filter(company -> !company.getCityHeadquarters().equalsIgnoreCase("Kijev") &&
+                        !company.getCityHeadquarters().equalsIgnoreCase("London") &&
+                        !company.getCityHeadquarters().equalsIgnoreCase("Detroit"))
+                .min(Comparator.comparingDouble(
+                        company -> company.getPurchaseList().size()));
+//        company -> company.getPurchaseList().stream()
+//                .filter(purchase -> purchase.getProduct()
+//                        .mapToDouble(purchase -> purchase.getQuantity()).sum()));
+
+        System.out.println("Zadanie 7: " + firma_7);
+
+    }
+
+    // 8. Każdej firmie dodaj po 1 pracowniku, jeśli pochodzi z Kijowa lub Detroit
+    private static void compony_8(List<Company> companies) {
+//        AtomicInteger i = new AtomicInteger(1);
+//
+//        Optional<Company> firma_8=companies.stream()
+//                .filter(company -> company.getCityHeadquarters().equalsIgnoreCase("Detroit")
+//                &&company.getCityHeadquarters().equalsIgnoreCase("Kijev"))
+//                .collect(
+//                  c->c
+//
+//                );
+    }
+
+    // 11. Zwróć firmę która dokonała zakupów na największą kwotę
+    private static void company_11_zakupy_najwieksze(List<Company> companies) {
+        List<Company> firma_11 = companies.stream()
+                .max(Comparator.comparingDouble(company -> company.getPurchaseList().size()))
+                .stream().collect(Collectors.toList());
+        wypisz_po_nazwach_kolejno_11(firma_11);
+
+        ///Drugie rozwiązanie:
+//        Optional<Company> firma = companies.stream()
+//                .max(Comparator.comparingDouble(
+//                        company -> company.getPurchaseList().stream()
+//                                .mapToDouble(purchase -> purchase.getQuantity() * purchase.getProduct().getPrice()).sum()));
+//        System.out.println(firma);
+    }
+
+    private static void wypisz_po_nazwach_kolejno_11(List<Company> firmy) {
+        System.out.println("\n");
+        System.out.println("Zadannie 11 firmy:\n");
+        AtomicInteger i = new AtomicInteger(1);
+        firmy.stream().forEach(firma -> {
+            String tekstDoWyswietlenia = (i.getAndIncrement()) + "." + firma.getName() + " " + firma.getPurchaseList().size() + " " + firma.getCityHeadquarters();
+            System.out.println(tekstDoWyswietlenia);
+        });
+        System.out.println("\n");
+    }
+
+    //    12. Zwróć firmę która kupiła najwięcej produktów za kwotę wyższą niż 10 k
+    private static void company_12_zakupy_10k(List<Company> companies) {
+        Optional<Company> firma_12 = companies.stream()
+                .max(Comparator.comparingDouble(company -> company.getPurchaseList().stream()
+                        .filter(purchase -> purchase.getProduct().getPrice() > 10000)
+                        .mapToDouble(purchase -> purchase.getQuantity()).sum()));
+        System.out.println("Zadanie 12: \nFirma: " + firma_12.get().getName());
+    }
+
+    // 13. *Zwróć miejscowość, która wydała najwięcej pieniędzy. Stwórz mapę Map<String, Double>
+// gdzie kluczem jest miejscowość, a wartością jest kwota wydana przez firmy pochodzące z tamtej miejscowości
+    private static void company_13_najwiecej_hajsu(List<Company> companies) {
+
+        // Stosujemy set żeby nie było duplikatów.
+        Set<String> miejscowosc = companies.stream().map(company -> company.getCityHeadquarters()).collect(Collectors.toSet());
+
+        //Map - kolekcja służąca do przechowywania par klucz-wartość.
+        Map<String, Double> wydanaKasa = miejscowosc.stream().collect(Collectors.toMap(
+                m -> m,
+                m -> companies.stream()
+                        .filter(company -> company.getCityHeadquarters().equals(m))
+                        .mapToDouble(c -> c.getPurchaseList().stream()
+                                .mapToDouble(p -> p.getQuantity() * p.getProduct().getPrice())
+                                .sum()).
+                                sum()));
+        System.out.println("Zadanie 13 \n" +
+                "Miejscowość: " + wydanaKasa);
+
+    }
+
+    // 14. Wypisz firmy które 15 stycznia 2018 kupiły "Network Switch"
+    private static void company_14_network(List<Company> companies) {
+        System.out.println("Zadanie_14:");
+        companies.stream()
+                .filter(company -> company.getPurchaseList().stream()
+                        .anyMatch(p -> p.getPurchaseDate().isEqual(LocalDate.of(2018, 1, 15))
+                                && p.getProduct().getName().equalsIgnoreCase("network switch")))
+                .forEach(company -> System.out.println(company.getName() + " " + company.getCityHeadquarters()));
+    }
+
+    // 15. Znajdź firmę która kupuje najwięcej kawy
+    private static void company_15_coffe(List<Company> companies) {
+        System.out.println("Zadnie 15:");
+        Optional<Company> firma_15 = companies
+                .stream()
+                .max(Comparator.comparingDouble(
+                        c -> c.getPurchaseList()
+                                .stream()
+                                .filter(purchase ->
+                                        purchase.getProduct().getName().equalsIgnoreCase("Coffee, Arabica") ||
+                                                purchase.getProduct().getName().equalsIgnoreCase("Coffee, Robusta"))
+                                .mapToDouble(value -> value.getQuantity() * value.getProduct().getPrice())
+                                .sum()));
+        if (firma_15.isPresent()) {
+            Company c = firma_15.get();
+            System.out.println("Company name: " + c.getName());
+        }
+    }
+
+    // 16. Wypisz ile łącznie zostało kupionej kawy Arabica w miesiącu styczniu
+    private static void company_16_arabica_january(List<Company> companies) {
+        System.out.println("Zadanie 16:");
+        double sum = companies.stream()
+                .flatMap(c -> c.getPurchaseList().stream().filter(p -> p.getProduct().getName().equalsIgnoreCase("Coffee, Arabica") && p.getPurchaseDate().getMonth().getValue() == 1))
+                .mapToDouble(Purchase::getQuantity).sum();
+        System.out.println("Całkowita wartość kawy arabica kupiona w Styczniu wynosi:" + sum + " kg");
+    }
+
+    // 17. Wypisz ile łącznie kawy (Arabica i Roubsta) zostało kupionej w dni parzyste.
+    private static void company_17_arabica_robusta_even(List<Company> companies) {
+        System.out.println("Zadanie 17:");
+        double sum = companies.stream()
+                .flatMap(c -> c.getPurchaseList()
+                        .stream()
+                        .filter(p -> (p.getProduct().getName().equalsIgnoreCase("Coffee, Arabica") || p.getProduct().getName().equalsIgnoreCase("Coffee, Robusta")) && p.getPurchaseDate().getDayOfMonth() % 2 == 0))
+                .mapToDouble(Purchase::getQuantity).sum();
+        System.out.println("Całkowita wartość kawy arabica kupiona w dni parzyste wynosi:" + sum + " kg");
+    }
+
+    // 18. Zwróć Mapę (Map<Product, Set<Company>>) w której kluczem jest typ kawy (powinny być dwie, Arabica i Robusta)
+    // i wartością są listy firm które kupiły podaną kawę chociaż raz.
+    private static void company_18_mapa_kaw(List<Company> companies) {
+        System.out.println("Zadanie 18:");
+        List<Product> products = companies.stream()
+                .map(company -> company.getPurchaseList())
+                .flatMap(purchases -> purchases.stream())
+                .map(purchase -> purchase.getProduct())
+                .filter(product -> product.getName().startsWith("Coffee,"))
+                .collect(Collectors.toList());//typy kawy
+        Map<Product, Set<Company>> companiesWhoDrinkCoffee = products.stream()
+                .collect(Collectors.toMap(
+                        product -> product,
+                        product -> companies.stream()
+                                .filter(company -> company.getPurchaseList().stream()
+                                        .anyMatch(purchase -> purchase.getProduct() == product)).collect(Collectors.toSet()),
+                        (e1, e2) -> {
+                            Set<Company> companiess = new HashSet<>(e1);
+                            companies.addAll(e2);
+                            return companiess;
+                        }));
+        System.out.println("Firmy,które kupiły kawę chociaż raz: " + companiesWhoDrinkCoffee);
+        // Stosujemy set żeby nie było duplikatów.
+
+    }
+
+    // 19. Zwróć firmę która w styczniu kupiła najwięcej paliwa (ropy)
+    private static void company_19_most_oil_january(List<Company> companies) {
+        Optional<Company> firma_19 = companies.stream()
+                .max(Comparator.comparingDouble(company -> company.getPurchaseList().stream()
+                        .filter(purchase -> purchase.getProduct().getName().equalsIgnoreCase("Fuel, oil"))
+                        .mapToDouble(purchase -> purchase.getQuantity()).sum()));
+        System.out.println("Zadanie 19: \nFirma: " + firma_19.get().getName());
+    }
+
+    // 20. Zwróć firmę której proporcja wydanych pieniędzy do ilości pracowników jest najwyższa
+    private static void company_20_money_vs_employees(List<Company> companies) {
+        Optional<Company> firma_20 = companies.stream().filter(company -> company.getPurchaseList().stream().filter(purchase -> purchase.getProduct().getPrice()))
+
+        System.out.println("Zadanie 12: \nFirma: " + firma_20.get().getName());
+    }
+
 }
